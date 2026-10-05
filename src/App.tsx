@@ -1,7 +1,9 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Excalidraw, FONT_FAMILY } from "@excalidraw/excalidraw";
+import type { ExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 import type {
   AppState,
+  BinaryFiles,
   ExcalidrawImperativeAPI,
   ExcalidrawInitialDataState,
   UIOptions,
@@ -13,6 +15,7 @@ import {
   getPageFrames,
 } from "./a4";
 import { exportPagesToPdf } from "./pdf";
+import { createAutosave, loadScene } from "./storage";
 
 const UI_OPTIONS: UIOptions = {
   canvasActions: {
@@ -31,9 +34,37 @@ const UI_OPTIONS: UIOptions = {
 const ALLOWED_TOOLS = new Set<string>(["selection", "hand", "text", "image"]);
 
 export default function App() {
-  const initialData = useMemo<ExcalidrawInitialDataState>(
-    () => ({
-      elements: createPage(),
+  const apiRef = useRef<ExcalidrawImperativeAPI | null>(null);
+  const storageErrorShown = useRef(false);
+
+  const [autosave] = useState(() =>
+    createAutosave((error) => {
+      console.error("No se pudo guardar en localStorage", error);
+      if (!storageErrorShown.current) {
+        storageErrorShown.current = true;
+        apiRef.current?.setToast({
+          message:
+            "No se pudo guardar automáticamente (¿imágenes demasiado grandes?).",
+          closable: true,
+          duration: 8000,
+        });
+      }
+    }),
+  );
+
+  const initialData = useMemo<ExcalidrawInitialDataState>(() => {
+    const saved = loadScene();
+    const savedElements = saved?.elements ?? [];
+    const elements =
+      getPageFrames(savedElements).length > 0
+        ? savedElements
+        : [...savedElements, ...createPage()];
+    if (saved) {
+      autosave.markFilesSaved(saved.files);
+    }
+    return {
+      elements,
+      files: saved?.files,
       appState: {
         viewBackgroundColor: CANVAS_BACKGROUND,
         // Estilo limpio, no "dibujado a mano".
@@ -45,13 +76,28 @@ export default function App() {
         currentItemTextAlign: "left",
         currentItemRoundness: "sharp",
         frameRendering: { enabled: true, clip: true, name: false, outline: false },
+        ...saved?.appState,
       },
       scrollToContent: false,
-    }),
-    [],
-  );
+    };
+  }, [autosave]);
 
-  const apiRef = useRef<ExcalidrawImperativeAPI | null>(null);
+  // Guardar lo pendiente al cerrar o recargar la pestaña.
+  useEffect(() => {
+    const flush = () => autosave.flush();
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        flush();
+      }
+    };
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      flush();
+      window.removeEventListener("pagehide", flush);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [autosave]);
 
   const onApi = useCallback((api: ExcalidrawImperativeAPI) => {
     apiRef.current = api;
@@ -109,12 +155,17 @@ export default function App() {
   );
 
   const onChange = useCallback(
-    (_elements: unknown, appState: AppState) => {
+    (
+      elements: readonly ExcalidrawElement[],
+      appState: AppState,
+      files: BinaryFiles,
+    ) => {
       if (!ALLOWED_TOOLS.has(appState.activeTool.type)) {
         apiRef.current?.setActiveTool({ type: "selection" });
       }
+      autosave.save(elements, appState, files);
     },
-    [],
+    [autosave],
   );
 
   return (
