@@ -1,0 +1,287 @@
+/* ------------------------------------------------------------------ */
+/* Temas                                                               */
+/* Oscuro: colores medidos de una captura del editor Zed.              */
+/* ------------------------------------------------------------------ */
+
+:root {
+  --surround: #e9ecef; /* alrededor de la hoja */
+  --btn-bg: #ffffff;
+  --btn-bg-hover: #f1f3f5;
+  --btn-fg: #212529;
+  --btn-border: #ced4da;
+  --btn-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --primary-bg: #1971c2;
+  --primary-bg-hover: #1864ab;
+  --primary-fg: #ffffff;
+  --btn-font:
+    600 14px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mode-fg: #495057;
+  --mode-active-bg: #e7f0fa;
+  --mode-active-fg: #1864ab;
+  --mono: "IBM Plex Mono", "Zed Plex Mono", Menlo, "SF Mono", monospace;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --surround: #181818;
+  --zed-bg: #1f1f1f; /* fondo del editor */
+  --zed-line: #282828; /* línea resaltada */
+  --zed-hover: #2b2b2b;
+  --zed-border: #454545;
+  --zed-fg: #cccccc; /* texto */
+  --zed-muted: #8e8e8e;
+  --btn-bg: var(--zed-bg);
+  --btn-bg-hover: var(--zed-line);
+  --btn-fg: var(--zed-fg);
+  --btn-border: var(--zed-border);
+  --btn-shadow: none;
+  --primary-bg: var(--zed-line);
+  --primary-bg-hover: var(--zed-hover);
+  --primary-fg: #ffffff;
+  --btn-font: 500 13px/1 var(--mono);
+  --mode-fg: var(--zed-muted);
+  --mode-active-bg: var(--zed-border);
+  --mode-active-fg: #ffffff;
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.app {
+  position: fixed;
+  inset: 0;
+  background: var(--surround);
+}
+
+/* El lienzo es transparente: el fondo lo pone .app. */
+.excalidraw,
+.excalidraw.theme--dark {
+  background: transparent;
+}
+
+/*
+ * Modo oscuro de la hoja. Excalidraw oscurece el lienzo con un filtro CSS;
+ * este lleva el blanco de la hoja a #1f1f1f y el negro del texto a #cccccc:
+ * invert + hue-rotate (mantiene los tonos), luego contrast(c) y
+ * brightness(k) con k·(0.5 − c/2) = 0x1f/255 y k·(0.5 + c/2) = 0xcc/255.
+ * El PDF no usa este filtro: siempre sale en blanco.
+ */
+.excalidraw.theme--dark canvas {
+  filter: invert(1) hue-rotate(180deg) contrast(0.7361) brightness(0.9216);
+}
+
+/* Interfaz de Excalidraw en modo oscuro, con el aspecto de Zed. */
+.excalidraw.theme--dark {
+  --ui-font: var(--mono);
+  --island-bg-color: var(--zed-bg);
+  --default-bg-color: var(--zed-bg);
+  --input-bg-color: var(--zed-bg);
+  --input-border-color: var(--zed-border);
+  --input-hover-bg-color: var(--zed-line);
+  --popup-bg-color: var(--zed-bg);
+  --popup-secondary-bg-color: var(--zed-line);
+  --popup-text-color: var(--zed-fg);
+  --text-primary-color: var(--zed-fg);
+  --icon-fill-color: var(--zed-fg);
+  --keybinding-color: var(--zed-muted);
+  --button-gray-1: var(--zed-hover);
+  --button-gray-2: var(--zed-line);
+  --button-gray-3: var(--zed-bg);
+  --button-bg: var(--zed-bg);
+  --button-hover-bg: var(--zed-line);
+  --color-surface-low: var(--zed-bg);
+  --color-surface-mid: var(--zed-line);
+  --color-surface-high: var(--zed-hover);
+  --color-surface-lowest: var(--zed-bg);
+  --color-on-surface: var(--zed-fg);
+  --color-gray-100: var(--zed-fg);
+  --color-primary: var(--zed-fg);
+  --color-primary-light: var(--zed-line);
+  --color-primary-light-darker: var(--zed-hover);
+  --color-primary-darker: #ffffff;
+  --color-primary-darkest: #ffffff;
+  --color-primary-hover: #ffffff;
+  --color-surface-primary-container: var(--zed-border);
+  --color-on-primary-container: #ffffff;
+  --color-brand-hover: #ffffff;
+  --color-brand-active: #ffffff;
+  --color-border-outline: var(--zed-muted);
+  --color-border-outline-variant: var(--zed-border);
+  --default-border-color: var(--zed-border);
+  --shadow-island: none;
+  --scrollbar-thumb: var(--zed-border);
+}
+
+.excalidraw.theme--dark .Island {
+  border: 1px solid var(--zed-border);
+  box-shadow: none;
+}
+
+/* Letra de Zed en la interfaz: en noche y en el Modo 2. */
+:root[data-mode="2"] {
+  --btn-font: 500 13px/1 var(--mono);
+}
+
+:root[data-mode="2"] .excalidraw {
+  --ui-font: var(--mono);
+}
+
+.excalidraw.theme--dark,
+.excalidraw.theme--dark .App-menu,
+.excalidraw.theme--dark .Island,
+.excalidraw.theme--dark legend,
+.excalidraw.theme--dark .ToolIcon__keybinding,
+.excalidraw.theme--dark .Toast,
+:root[data-mode="2"] .excalidraw,
+:root[data-mode="2"] .excalidraw .App-menu,
+:root[data-mode="2"] .excalidraw .Island,
+:root[data-mode="2"] .excalidraw legend,
+:root[data-mode="2"] .excalidraw .ToolIcon__keybinding,
+:root[data-mode="2"] .excalidraw .Toast {
+  font-family: var(--mono);
+}
+
+/* ------------------------------------------------------------------ */
+/* Interfaz mínima de Excalidraw                                       */
+/* ------------------------------------------------------------------ */
+
+/* Menú principal, librería, ayuda y textos de ayuda. */
+.excalidraw .main-menu-trigger,
+.excalidraw .default-sidebar-trigger,
+.excalidraw .sidebar-trigger,
+.excalidraw .help-icon,
+.excalidraw .HintViewer {
+  display: none !important;
+}
+
+/* Barra de herramientas: solo mano, seleccionar, texto e imagen. */
+.excalidraw
+  .shapes-section
+  .ToolIcon:not(
+    :has(
+      [data-testid="toolbar-hand"],
+      [data-testid="toolbar-selection"],
+      [data-testid="toolbar-text"],
+      [data-testid="toolbar-image"]
+    )
+  ),
+.excalidraw .App-toolbar__extra-tools-trigger,
+.excalidraw .App-toolbar__divider {
+  display: none !important;
+}
+
+/* Panel de propiedades: solo tamaño de texto y alineación. */
+.excalidraw
+  .App-menu__left
+  .panelColumn
+  > :not(:has([data-testid^="fontSize-"], [data-testid^="align-"])) {
+  display: none !important;
+}
+.excalidraw .App-menu__left:not(:has([data-testid^="fontSize-"])) {
+  display: none !important;
+}
+
+/* ------------------------------------------------------------------ */
+/* Botones propios (esquina superior derecha)                          */
+/* ------------------------------------------------------------------ */
+
+.a4-actions {
+  display: flex;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.a4-actions > * {
+  flex-shrink: 0;
+}
+
+.a4-button {
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid var(--btn-border);
+  border-radius: 8px;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font: var(--btn-font);
+  cursor: pointer;
+  box-shadow: var(--btn-shadow);
+}
+
+.a4-button:hover:not(:disabled) {
+  background: var(--btn-bg-hover);
+}
+
+.a4-button:focus-visible {
+  outline: 2px solid var(--primary-bg);
+  outline-offset: 2px;
+}
+
+/* Selector Modo 1 / Modo 2: dos opciones unidas, la activa resaltada. */
+.a4-button--icon {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  padding: 0;
+}
+
+.a4-modes {
+  display: inline-flex;
+  height: 36px;
+  padding: 3px;
+  gap: 2px;
+  box-sizing: border-box;
+  border: 1px solid var(--btn-border);
+  border-radius: 8px;
+  background: var(--btn-bg);
+  box-shadow: var(--btn-shadow);
+}
+
+.a4-modes__option {
+  padding: 0 12px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--mode-fg);
+  font: var(--btn-font);
+  cursor: pointer;
+}
+
+.a4-modes__option:hover:not([aria-pressed="true"]) {
+  background: var(--btn-bg-hover);
+}
+
+.a4-modes__option[aria-pressed="true"] {
+  background: var(--mode-active-bg);
+  color: var(--mode-active-fg);
+}
+
+.a4-modes__option:focus-visible {
+  outline: 2px solid var(--primary-bg);
+  outline-offset: 1px;
+}
+
+.a4-button--primary {
+  border-color: var(--primary-bg);
+  background: var(--primary-bg);
+  color: var(--primary-fg);
+}
+
+:root[data-theme="dark"] .a4-button--primary {
+  border-color: var(--zed-border);
+}
+
+.a4-button--primary:hover:not(:disabled) {
+  background: var(--primary-bg-hover);
+}
+
+.a4-button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
