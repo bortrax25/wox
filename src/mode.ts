@@ -35,7 +35,7 @@ export const MODE_LINE_HEIGHT: Record<DocMode, number> = {
   2: 1.618,
 };
 
-const KEY = "editor-a4:mode";
+const KEY = "wox:mode";
 
 export function loadMode(): DocMode {
   try {

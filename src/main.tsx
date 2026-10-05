@@ -6,7 +6,10 @@ import "@fontsource/ibm-plex-mono/500.css";
 import "./index.css";
 import App from "./App.tsx";
 import { loadMode } from "./mode";
+import { migrateLegacyStorage } from "./storage";
 import { loadTheme } from "./theme";
+
+migrateLegacyStorage();
 
 // Aplicar el tema antes del primer pintado para evitar un parpadeo.
 document.documentElement.dataset.theme = loadTheme();

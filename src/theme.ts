@@ -1,6 +1,6 @@
 export type Theme = "light" | "dark";
 
-const KEY = "editor-a4:theme";
+const KEY = "wox:theme";
 
 /** Tema guardado; la primera vez sigue la preferencia del sistema. */
 export function loadTheme(): Theme {

@@ -5,7 +5,7 @@ import { VitePWA } from "vite-plugin-pwa";
 // https://vite.dev/config/
 export default defineConfig({
   // Rutas relativas: el build funciona servido desde cualquier subcarpeta
-  // (p. ej. GitHub Pages en /editor-a4-excalidraw/).
+  // (p. ej. GitHub Pages en /wox/).
   base: "./",
   plugins: [
     react(),
@@ -16,8 +16,8 @@ export default defineConfig({
       // Se registra a mano en main.tsx (no dentro del visor de claude.ai).
       injectRegister: null,
       manifest: {
-        name: "Editor A4",
-        short_name: "Editor A4",
+        name: "Wox",
+        short_name: "Wox",
         description:
           "Hoja A4 para colocar texto e imágenes libremente y descargarla en PDF.",
         lang: "es",

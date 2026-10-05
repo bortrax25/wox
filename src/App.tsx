@@ -187,7 +187,6 @@ export default function App() {
     }
   }, [exporting, theme]);
 
-
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     saveTheme(theme);

@@ -1,23 +1,32 @@
-# Editor A4 (Excalidraw)
+# Wox
 
-Editor minimalista sobre Excalidraw: el lienzo es una hoja blanca A4 donde se colocan texto e imágenes libremente, con un botón para exportar a PDF.
+Una hoja A4 en blanco donde colocas texto e imágenes donde quieras, y la descargas en PDF con un clic. Sin cuentas, sin servidor: todo ocurre en tu navegador.
 
-El plan de implementación está en [PLAN.md](PLAN.md).
+**Úsalo aquí → https://bortrax25.github.io/wox/**
 
-## Usar en la web
+![Wox en Modo 2, de noche](docs/wox-modo2-noche.png)
 
-**https://bortrax25.github.io/editor-a4-excalidraw/**
+## Qué hace
 
-- Se publica sola con cada cambio en `main` (`.github/workflows/deploy.yml`).
-- Se puede instalar como app: en Safari, *Archivo → Añadir al Dock*; en Chrome, el icono de instalar en la barra de direcciones; en el móvil, *Compartir → Añadir a pantalla de inicio*.
-- Funciona sin internet después de la primera visita (service worker con todos los archivos) y se actualiza sola al volver a tener conexión.
-- Los documentos se guardan en el navegador de cada dispositivo; no se sincronizan entre dispositivos.
+- **Texto e imágenes libres** sobre hojas A4 reales (210 × 297 mm). Escribe, pega o arrastra imágenes y muévelas como quieras.
+- **Modo 1 / Modo 2**: texto en Arial, o el estilo del editor Zed (IBM Plex Mono).
+- **Día / noche** con un clic.
+- **PDF tal como lo ves**: una página por hoja, con la letra del modo y los colores de día o de noche. El texto se puede seleccionar.
+- **Varias hojas** con *+ Hoja*.
+- **Se guarda solo** en tu navegador.
+- **Instalable y sin internet**: en Safari, *Archivo → Añadir al Dock*; en Chrome, el icono de instalar en la barra de direcciones; en el móvil, *Compartir → Añadir a pantalla de inicio*. Después de la primera visita funciona sin conexión y se actualiza sola.
 
-Requisito de GitHub (una sola vez): *Settings → Pages → Source: GitHub Actions*.
+Tus documentos se quedan en el navegador de cada dispositivo: no se suben a ningún sitio ni se sincronizan entre dispositivos.
+
+## Publicación
+
+Se publica en GitHub Pages con cada cambio en `main` (`.github/workflows/deploy.yml`). Requisito de GitHub, una sola vez: *Settings → Pages → Source: GitHub Actions*.
 
 ## Uso local
 
 ```bash
+git clone https://github.com/bortrax25/wox.git
+cd wox
 npm install
 npm run dev      # http://localhost:5173
 npm run build    # genera dist/ (sitio estático, sin backend)
@@ -33,6 +42,8 @@ npm run lint
 - **Día / noche** (botón sol/luna): independiente del modo. De noche la hoja se ve como Zed (fondo `#1f1f1f`, texto `#cccccc`).
 - **PDF**: descarga `documento.pdf` con una página por hoja, tal como se ve: con la letra del modo y, de noche, con fondo `#1f1f1f` y texto `#cccccc` (de día, blanco y negro). Solo se incluye lo que está dentro de cada hoja.
 - Todo se guarda solo en `localStorage` y se restaura al recargar.
+
+El plan original de implementación está en [PLAN.md](PLAN.md).
 
 ## Cómo está hecho
 
