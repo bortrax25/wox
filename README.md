@@ -4,7 +4,18 @@ Editor minimalista sobre Excalidraw: el lienzo es una hoja blanca A4 donde se co
 
 El plan de implementación está en [PLAN.md](PLAN.md).
 
-## Uso
+## Usar en la web
+
+**https://bortrax25.github.io/editor-a4-excalidraw/**
+
+- Se publica sola con cada cambio en `main` (`.github/workflows/deploy.yml`).
+- Se puede instalar como app: en Safari, *Archivo → Añadir al Dock*; en Chrome, el icono de instalar en la barra de direcciones; en el móvil, *Compartir → Añadir a pantalla de inicio*.
+- Funciona sin internet después de la primera visita (service worker con todos los archivos) y se actualiza sola al volver a tener conexión.
+- Los documentos se guardan en el navegador de cada dispositivo; no se sincronizan entre dispositivos.
+
+Requisito de GitHub (una sola vez): *Settings → Pages → Source: GitHub Actions*.
+
+## Uso local
 
 ```bash
 npm install
@@ -33,6 +44,8 @@ npm run lint
 | `src/storage.ts` | Autoguardado en `localStorage` con debounce. |
 | `src/mode.ts` | Modo 1 / Modo 2: fuente e interlineado de los textos. |
 | `src/theme.ts` | Día / noche, guardado en `localStorage`. |
+| `vite.config.ts` | Rutas relativas y app instalable/sin conexión (`vite-plugin-pwa`). |
+| `.github/workflows/deploy.yml` | Publicación en GitHub Pages. |
 | `src/index.css` | Pantalla completa, interfaz mínima (oculta herramientas y paneles con `:has()`) y estilos de ambos temas. |
 
 Versión verificada: `@excalidraw/excalidraw` **0.18.1**.

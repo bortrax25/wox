@@ -25,3 +25,13 @@ createRoot(document.getElementById("root")!).render(
     <App />
   </StrictMode>,
 );
+
+// Sin conexión: el service worker guarda la app tras la primera visita y se
+// actualiza solo. No dentro del visor de claude.ai, que no lo permite.
+if (import.meta.env.PROD && "serviceWorker" in navigator && !window.claude) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch((error) => {
+      console.warn("No se pudo activar el modo sin conexión", error);
+    });
+  });
+}
