@@ -1,8 +1,12 @@
 import {
   CaptureUpdateAction,
   convertToExcalidrawElements,
+  newElementWith,
 } from "@excalidraw/excalidraw";
-import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
+import type {
+  AppState,
+  ExcalidrawImperativeAPI,
+} from "@excalidraw/excalidraw/types";
 import type {
   ExcalidrawElement,
   ExcalidrawFrameElement,
@@ -128,4 +132,48 @@ export const addPage = (api: ExcalidrawImperativeAPI) => {
   if (frame) {
     scrollToPage(api, frame, true);
   }
+};
+
+const isPageElement = (el: ExcalidrawElement) =>
+  isPageFrame(el) || isPageBackground(el);
+
+/**
+ * Mantiene las hojas protegidas: las vuelve a bloquear si algo las
+ * desbloqueó ("Desbloquear todo") y las quita de la selección (el clic
+ * derecho selecciona elementos bloqueados y permitiría borrarlas).
+ */
+export const protectPages = (
+  api: ExcalidrawImperativeAPI,
+  elements: readonly ExcalidrawElement[],
+  appState: AppState,
+) => {
+  const pageIds = new Set(
+    elements.filter((el) => isPageElement(el)).map((el) => el.id),
+  );
+  const unlocked = elements.some((el) => pageIds.has(el.id) && !el.locked);
+  const selected = Object.keys(appState.selectedElementIds).some((id) =>
+    pageIds.has(id),
+  );
+  if (!unlocked && !selected) {
+    return;
+  }
+  api.updateScene({
+    elements: unlocked
+      ? elements.map((el) =>
+          pageIds.has(el.id) && !el.locked
+            ? newElementWith(el, { locked: true })
+            : el,
+        )
+      : undefined,
+    appState: selected
+      ? {
+          selectedElementIds: Object.fromEntries(
+            Object.entries(appState.selectedElementIds).filter(
+              ([id]) => !pageIds.has(id),
+            ),
+          ),
+        }
+      : undefined,
+    captureUpdate: CaptureUpdateAction.NEVER,
+  });
 };

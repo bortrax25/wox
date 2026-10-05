@@ -14,6 +14,7 @@ import {
   addPage,
   createPage,
   getPageFrames,
+  protectPages,
   scrollToPage,
 } from "./a4";
 import { exportPagesToPdf, type PdfMode } from "./pdf";
@@ -178,6 +179,9 @@ export default function App() {
     ) => {
       if (!ALLOWED_TOOLS.has(appState.activeTool.type)) {
         apiRef.current?.setActiveTool({ type: "selection" });
+      }
+      if (apiRef.current) {
+        protectPages(apiRef.current, elements, appState);
       }
       autosave.save(elements, appState, files);
     },

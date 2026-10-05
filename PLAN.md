@@ -65,13 +65,13 @@ Colaboración en vivo, librerías de formas, dibujo a mano alzada, flechas y dia
 9. Opcional: PDF vectorial (fase 2) y varias hojas.
 
 ## Criterios de aceptación
-- [ ] Al abrir, veo una hoja A4 blanca centrada y el botón PDF; la interfaz es mínima.
-- [ ] Puedo escribir texto con líneas limpias y fuente sans (idealmente Arial/Arimo).
-- [ ] Puedo insertar, pegar y arrastrar imágenes, y moverlas/redimensionarlas con fluidez.
-- [ ] Puedo replicar el boceto: texto ancho, imagen + texto, texto + imagen + texto.
-- [ ] El botón PDF descarga un PDF A4 con exactamente lo que está dentro de la hoja.
-- [ ] La hoja de fondo no se puede mover ni seleccionar por accidente.
-- [ ] Al recargar, el contenido sigue ahí.
+- [x] Al abrir, veo una hoja A4 blanca centrada y el botón PDF; la interfaz es mínima.
+- [x] Puedo escribir texto con líneas limpias y fuente sans (idealmente Arial/Arimo).
+- [x] Puedo insertar, pegar y arrastrar imágenes, y moverlas/redimensionarlas con fluidez.
+- [x] Puedo replicar el boceto: texto ancho, imagen + texto, texto + imagen + texto.
+- [x] El botón PDF descarga un PDF A4 con exactamente lo que está dentro de la hoja.
+- [x] La hoja de fondo no se puede mover ni seleccionar por accidente.
+- [x] Al recargar, el contenido sigue ahí.
 
 ## Notas
 - Excalidraw es MIT.
