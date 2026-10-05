@@ -33,6 +33,12 @@ const UI_OPTIONS: UIOptions = {
   tools: { image: true },
 };
 
+/** Modo 1: el claro de siempre. Modo 2: oscuro, como el editor Zed. */
+const MODES: { theme: Theme; label: string; title: string }[] = [
+  { theme: "light", label: "Modo 1", title: "Modo claro" },
+  { theme: "dark", label: "Modo 2", title: "Modo oscuro, estilo Zed" },
+];
+
 /** Herramientas visibles en la barra; los atajos a otras se ignoran. */
 const ALLOWED_TOOLS = new Set<string>(["selection", "hand", "text", "image"]);
 
@@ -155,27 +161,9 @@ export default function App() {
     saveTheme(theme);
   }, [theme]);
 
-  const toggleTheme = useCallback(
-    () => setTheme((current) => (current === "dark" ? "light" : "dark")),
-    [],
-  );
-
   const renderTopRightUI = useCallback(
     () => (
       <div className="a4-actions">
-        <button
-          type="button"
-          className="a4-button a4-button--icon"
-          onClick={toggleTheme}
-          title={
-            theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"
-          }
-          aria-label={
-            theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"
-          }
-        >
-          {theme === "dark" ? <SunIcon /> : <MoonIcon />}
-        </button>
         <button
           type="button"
           className="a4-button"
@@ -184,6 +172,20 @@ export default function App() {
         >
           + Hoja
         </button>
+        <div className="a4-modes" role="group" aria-label="Modo de pantalla">
+          {MODES.map(({ theme: value, label, title }) => (
+            <button
+              key={value}
+              type="button"
+              className="a4-modes__option"
+              aria-pressed={theme === value}
+              onClick={() => setTheme(value)}
+              title={title}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <button
           type="button"
           className="a4-button a4-button--primary"
@@ -195,7 +197,7 @@ export default function App() {
         </button>
       </div>
     ),
-    [exporting, handleExportPdf, theme, toggleTheme],
+    [exporting, handleExportPdf, theme],
   );
 
   const onChange = useCallback(
@@ -227,34 +229,5 @@ export default function App() {
         theme={theme}
       />
     </div>
-  );
-}
-
-const iconProps = {
-  width: 18,
-  height: 18,
-  viewBox: "0 0 24 24",
-  fill: "none",
-  stroke: "currentColor",
-  strokeWidth: 1.75,
-  strokeLinecap: "round",
-  strokeLinejoin: "round",
-  "aria-hidden": true,
-} as const;
-
-function MoonIcon() {
-  return (
-    <svg {...iconProps}>
-      <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />
-    </svg>
-  );
-}
-
-function SunIcon() {
-  return (
-    <svg {...iconProps}>
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-    </svg>
   );
 }

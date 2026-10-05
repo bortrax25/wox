@@ -18,7 +18,7 @@ npm run lint
 - **Texto**: herramienta `T` (o doble clic en la hoja). Para que un párrafo largo haga salto de línea automático, arrastra el borde lateral de la caja de texto: queda con ancho fijo.
 - **Imágenes**: herramienta de imagen, pegar (`Ctrl+V`) o arrastrar desde el escritorio. Se mueven y redimensionan libremente.
 - **+ Hoja**: agrega otra hoja A4 debajo de la última (`Ctrl+Z` la quita).
-- **Modo oscuro**: el botón de luna/sol lo cambia con un clic y se recuerda. Imita el editor Zed (fondo `#1f1f1f`, texto `#cccccc`, interfaz en IBM Plex Mono). Solo afecta a la pantalla: el PDF sale siempre en blanco con texto negro.
+- **Modo 1 / Modo 2**: selector junto al botón PDF; se recuerda. Modo 1 es el claro. Modo 2 es oscuro e imita el editor Zed (fondo `#1f1f1f`, texto `#cccccc`, interfaz en IBM Plex Mono). Solo afecta a la pantalla: el PDF sale siempre en blanco con texto negro.
 - **PDF**: descarga `documento.pdf` con una página por hoja; solo se incluye lo que está dentro de cada hoja.
 - Todo se guarda solo en `localStorage` y se restaura al recargar.
 

@@ -15,6 +15,9 @@
   --primary-fg: #ffffff;
   --btn-font:
     600 14px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mode-fg: #495057;
+  --mode-active-bg: #e7f0fa;
+  --mode-active-fg: #1864ab;
   --mono: "IBM Plex Mono", "Zed Plex Mono", Menlo, "SF Mono", monospace;
   color-scheme: light;
 }
@@ -36,6 +39,9 @@
   --primary-bg-hover: var(--zed-hover);
   --primary-fg: #ffffff;
   --btn-font: 500 13px/1 var(--mono);
+  --mode-fg: var(--zed-muted);
+  --mode-active-bg: var(--zed-border);
+  --mode-active-fg: #ffffff;
   color-scheme: dark;
 }
 
@@ -174,6 +180,11 @@ body,
 .a4-actions {
   display: flex;
   gap: 8px;
+  white-space: nowrap;
+}
+
+.a4-actions > * {
+  flex-shrink: 0;
 }
 
 .a4-button {
@@ -197,11 +208,41 @@ body,
   outline-offset: 2px;
 }
 
-.a4-button--icon {
-  display: inline-grid;
-  place-items: center;
-  width: 36px;
-  padding: 0;
+/* Selector Modo 1 / Modo 2: dos opciones unidas, la activa resaltada. */
+.a4-modes {
+  display: inline-flex;
+  height: 36px;
+  padding: 3px;
+  gap: 2px;
+  box-sizing: border-box;
+  border: 1px solid var(--btn-border);
+  border-radius: 8px;
+  background: var(--btn-bg);
+  box-shadow: var(--btn-shadow);
+}
+
+.a4-modes__option {
+  padding: 0 12px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--mode-fg);
+  font: var(--btn-font);
+  cursor: pointer;
+}
+
+.a4-modes__option:hover:not([aria-pressed="true"]) {
+  background: var(--btn-bg-hover);
+}
+
+.a4-modes__option[aria-pressed="true"] {
+  background: var(--mode-active-bg);
+  color: var(--mode-active-fg);
+}
+
+.a4-modes__option:focus-visible {
+  outline: 2px solid var(--primary-bg);
+  outline-offset: 1px;
 }
 
 .a4-button--primary {
