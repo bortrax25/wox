@@ -92,8 +92,7 @@ const inlineImageSymbols = (svg: SVGSVGElement) => {
 };
 
 /** Caracteres cubiertos por Liberation Sans (latín, griego, cirílico, signos). */
-const SUPPORTED_TEXT =
-  /^[\s -\u052F-\u206F\u20A0-\u20BF\u2100-\u214F]*$/;
+const SUPPORTED_TEXT = /^[\s -\u052F-\u206F\u20A0-\u20BF\u2100-\u214F]*$/;
 
 /**
  * El PDF vectorial solo es fiel si la página usa lo que jsPDF/svg2pdf saben
@@ -205,5 +204,34 @@ export async function exportPagesToPdf(
     console.warn("PDF vectorial falló; se usa la versión en imagen.", error);
     pdf = await buildPdf(api, "raster");
   }
-  pdf.save(fileName);
+  await savePdf(pdf, fileName);
+}
+
+/**
+ * Dentro del visor de artefactos de claude.ai las descargas directas están
+ * bloqueadas; allí el archivo se ofrece con su capacidad "downloads". Se
+ * pide al cargar porque puede tardar en responder.
+ */
+type DownloadsCapability = {
+  save: (request: { filename: string; data: Blob }) => Promise<unknown>;
+};
+
+const downloadsCapability = (
+  window.claude?.use("downloads") ?? Promise.resolve(null)
+).catch(() => null) as Promise<DownloadsCapability | null>;
+
+async function savePdf(pdf: jsPDF, fileName: string) {
+  const downloads = await downloadsCapability;
+  if (!downloads) {
+    pdf.save(fileName);
+    return;
+  }
+  try {
+    await downloads.save({ filename: fileName, data: pdf.output("blob") });
+  } catch (error) {
+    // "declined": la persona canceló el diálogo; no es un error.
+    if ((error as { code?: string })?.code !== "declined") {
+      throw error;
+    }
+  }
 }
