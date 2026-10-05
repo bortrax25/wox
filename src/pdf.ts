@@ -1,9 +1,14 @@
-import { FONT_FAMILY, exportToBlob, exportToSvg } from "@excalidraw/excalidraw";
+import {
+  FONT_FAMILY,
+  exportToCanvas,
+  exportToSvg,
+} from "@excalidraw/excalidraw";
 import type { ExcalidrawFrameElement } from "@excalidraw/excalidraw/element/types";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import { jsPDF } from "jspdf";
 import "svg2pdf.js";
 import { getPageFrames } from "./a4";
+import type { Theme } from "./theme";
 
 /** Resolución del PNG respecto a 96 ppp (3 → 288 ppp). */
 const EXPORT_SCALE = 3;
@@ -42,6 +47,7 @@ type PageRenderer = (
   pdf: jsPDF,
   api: ExcalidrawImperativeAPI,
   frame: ExcalidrawFrameElement,
+  theme: Theme,
 ) => Promise<void>;
 
 const blobToDataURL = (blob: Blob) =>
@@ -58,23 +64,78 @@ const exportAppState = {
   exportWithDarkMode: false,
 };
 
+/*
+ * Noche: el PDF reproduce la pantalla, que oscurece la hoja con el filtro
+ * de index.css: invert(1) hue-rotate(180deg) contrast(0.7361)
+ * brightness(0.9216), que lleva el blanco a #1f1f1f y el negro a #cccccc.
+ */
+const NIGHT_CONTRAST = 0.7361;
+const NIGHT_BRIGHTNESS = 0.9216;
+
+/** Aplica a un color el mismo filtro de noche que usa la pantalla. */
+const nightColor = (hex: string) => {
+  const match = /^#([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!match) {
+    return hex;
+  }
+  const [r, g, b] = [0, 2, 4].map(
+    (i) => 1 - parseInt(match[1].slice(i, i + 2), 16) / 255,
+  );
+  // hue-rotate(180deg), matriz de la especificación de filtros CSS.
+  const rotated = [
+    -0.574 * r + 1.43 * g + 0.144 * b,
+    0.426 * r + 0.43 * g + 0.144 * b,
+    0.426 * r + 1.43 * g - 0.856 * b,
+  ];
+  return (
+    "#" +
+    rotated
+      .map((v) => {
+        const c =
+          ((Math.min(1, Math.max(0, v)) - 0.5) * NIGHT_CONTRAST + 0.5) *
+          NIGHT_BRIGHTNESS;
+        return Math.round(Math.min(1, Math.max(0, c)) * 255)
+          .toString(16)
+          .padStart(2, "0");
+      })
+      .join("")
+  );
+};
+
 /** Fase 1: la hoja como PNG a escala 3. Fiable, pero el texto no es seleccionable. */
-const renderRasterPage: PageRenderer = async (pdf, api, frame) => {
-  const blob = await exportToBlob({
+const renderRasterPage: PageRenderer = async (pdf, api, frame, theme) => {
+  const dark = theme === "dark";
+  const exported = await exportToCanvas({
     elements: api.getSceneElements(),
     files: api.getFiles(),
     exportingFrame: frame,
-    mimeType: "image/png",
-    appState: exportAppState,
+    // De noche Excalidraw invierte la hoja (invert(93%) hue-rotate(180deg))
+    // y deja las imágenes con sus colores; luego se ajustan los tonos.
+    appState: { ...exportAppState, exportWithDarkMode: dark },
     getDimensions: (width: number, height: number) => ({
       width: width * EXPORT_SCALE,
       height: height * EXPORT_SCALE,
       scale: EXPORT_SCALE,
     }),
   });
+  if (dark) {
+    // Su modo oscuro deja el blanco en 17 y el negro en 237 (medido); este
+    // ajuste lineal los lleva a #1f1f1f (31) y #cccccc (204), como en
+    // pantalla.
+    const ctx = exported.getContext("2d")!;
+    const image = ctx.getImageData(0, 0, exported.width, exported.height);
+    const scale = (204 - 31) / (237 - 17);
+    const { data } = image;
+    for (let i = 0; i < data.length; i += 4) {
+      data[i] = 31 + (data[i] - 17) * scale;
+      data[i + 1] = 31 + (data[i + 1] - 17) * scale;
+      data[i + 2] = 31 + (data[i + 2] - 17) * scale;
+    }
+    ctx.putImageData(image, 0, 0);
+  }
   const { pageSize } = pdf.internal;
   pdf.addImage(
-    await blobToDataURL(blob),
+    exported.toDataURL("image/png"),
     "PNG",
     0,
     0,
@@ -134,7 +195,7 @@ const canRenderAsVector = (svg: SVGSVGElement) => {
 };
 
 /** Fase 2: SVG → PDF vectorial; el texto queda seleccionable y nítido. */
-const renderVectorPage: PageRenderer = async (pdf, api, frame) => {
+const renderVectorPage: PageRenderer = async (pdf, api, frame, theme) => {
   const svg = await exportToSvg({
     elements: api.getSceneElements(),
     files: api.getFiles(),
@@ -144,9 +205,21 @@ const renderVectorPage: PageRenderer = async (pdf, api, frame) => {
     skipInliningFonts: true,
   });
   if (!canRenderAsVector(svg)) {
-    return renderRasterPage(pdf, api, frame);
+    return renderRasterPage(pdf, api, frame, theme);
   }
   inlineImageSymbols(svg);
+  if (theme === "dark") {
+    // Colores de la hoja y del texto como en pantalla; las imágenes quedan
+    // con sus colores originales.
+    svg.querySelectorAll("[fill], [stroke]").forEach((el: Element) => {
+      for (const attr of ["fill", "stroke"]) {
+        const value = el.getAttribute(attr);
+        if (value) {
+          el.setAttribute(attr, nightColor(value));
+        }
+      }
+    });
+  }
   svg.querySelectorAll("text").forEach((text: SVGTextElement) => {
     const family = text.getAttribute("font-family") ?? "";
     const font = PDF_FONTS.find((f) => family.startsWith(f.family));
@@ -197,7 +270,11 @@ const loadFontBase64 = (file: string) => {
   return font;
 };
 
-async function buildPdf(api: ExcalidrawImperativeAPI, mode: PdfMode) {
+async function buildPdf(
+  api: ExcalidrawImperativeAPI,
+  mode: PdfMode,
+  theme: Theme,
+) {
   const frames = getPageFrames(api.getSceneElements());
   if (frames.length === 0) {
     throw new Error("No hay ninguna hoja A4 para exportar.");
@@ -226,30 +303,39 @@ async function buildPdf(api: ExcalidrawImperativeAPI, mode: PdfMode) {
     if (index > 0) {
       pdf.addPage("a4", "portrait");
     }
-    await renderPage(pdf, api, frame);
+    if (theme === "dark") {
+      // Fondo de noche en toda la página, para que el redondeo en los
+      // bordes no deje una línea clara.
+      const { pageSize } = pdf.internal;
+      pdf.setFillColor(31, 31, 31);
+      pdf.rect(0, 0, pageSize.getWidth(), pageSize.getHeight(), "F");
+    }
+    await renderPage(pdf, api, frame, theme);
   }
   return pdf;
 }
 
 /**
  * Exporta cada hoja A4 (frame) como una página del PDF, en orden vertical.
- * Solo se incluye lo que está dentro de cada hoja. Intenta el PDF vectorial
- * y, si falla, recurre a la versión en imagen.
+ * Solo se incluye lo que está dentro de cada hoja, con el aspecto de la
+ * pantalla (día o noche; la letra ya es la del modo). Intenta el PDF
+ * vectorial y, si falla, recurre a la versión en imagen.
  */
 export async function exportPagesToPdf(
   api: ExcalidrawImperativeAPI,
+  theme: Theme,
   fileName = "documento.pdf",
   mode: PdfMode = "vector",
 ) {
   let pdf: jsPDF;
   try {
-    pdf = await buildPdf(api, mode);
+    pdf = await buildPdf(api, mode, theme);
   } catch (error) {
     if (mode === "raster") {
       throw error;
     }
     console.warn("PDF vectorial falló; se usa la versión en imagen.", error);
-    pdf = await buildPdf(api, "raster");
+    pdf = await buildPdf(api, "raster", theme);
   }
   await savePdf(pdf, fileName);
 }

@@ -52,6 +52,7 @@ const ALLOWED_TOOLS = new Set<string>(["selection", "hand", "text", "image"]);
 
 export default function App() {
   const apiRef = useRef<ExcalidrawImperativeAPI | null>(null);
+  const [theme, setTheme] = useState<Theme>(loadTheme);
   const [mode, setMode] = useState<DocMode>(loadMode);
   // Modo vigente para onChange; "ready" cuando su fuente ya está cargada.
   const modeRef = useRef({ mode, ready: false });
@@ -133,7 +134,14 @@ export default function App() {
         Object.assign(window, {
           excalidrawAPI: api,
           exportPdf: (mode: PdfMode) =>
-            exportPagesToPdf(api, "documento.pdf", mode),
+            exportPagesToPdf(
+              api,
+              document.documentElement.dataset.theme === "dark"
+                ? "dark"
+                : "light",
+              "documento.pdf",
+              mode,
+            ),
         });
       }
       // Esperar a que la escena inicial esté montada antes de centrar la hoja.
@@ -170,16 +178,15 @@ export default function App() {
     }
     setExporting(true);
     try {
-      await exportPagesToPdf(api);
+      await exportPagesToPdf(api, theme);
     } catch (error) {
       console.error(error);
       api.setToast({ message: "No se pudo generar el PDF.", closable: true });
     } finally {
       setExporting(false);
     }
-  }, [exporting]);
+  }, [exporting, theme]);
 
-  const [theme, setTheme] = useState<Theme>(loadTheme);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;

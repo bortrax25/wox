@@ -19,8 +19,8 @@ npm run lint
 - **Imágenes**: herramienta de imagen, pegar (`Ctrl+V`) o arrastrar desde el escritorio. Se mueven y redimensionan libremente.
 - **+ Hoja**: agrega otra hoja A4 debajo de la última (`Ctrl+Z` la quita).
 - **Modo 1 / Modo 2** (junto al botón PDF): estilo del documento. Modo 1: texto en Liberation Sans (Arial). Modo 2: estilo del editor Zed, con texto e interfaz en IBM Plex Mono e interlineado 1,618. Al cambiar, todos los textos se recalculan para no descuadrarse.
-- **Día / noche** (botón sol/luna): independiente del modo. De noche la hoja se ve como Zed (fondo `#1f1f1f`, texto `#cccccc`). Solo afecta a la pantalla: el PDF sale siempre en blanco con texto negro.
-- **PDF**: descarga `documento.pdf` con una página por hoja; solo se incluye lo que está dentro de cada hoja.
+- **Día / noche** (botón sol/luna): independiente del modo. De noche la hoja se ve como Zed (fondo `#1f1f1f`, texto `#cccccc`).
+- **PDF**: descarga `documento.pdf` con una página por hoja, tal como se ve: con la letra del modo y, de noche, con fondo `#1f1f1f` y texto `#cccccc` (de día, blanco y negro). Solo se incluye lo que está dentro de cada hoja.
 - Todo se guarda solo en `localStorage` y se restaura al recargar.
 
 ## Cómo está hecho
@@ -48,6 +48,8 @@ Versión verificada: `@excalidraw/excalidraw` **0.18.1**.
 
 1. **Vectorial (por defecto)**: `exportToSvg` del frame + `svg2pdf.js`. Liberation Sans se embebe en el PDF (jsPDF necesita un TTF, que se genera a partir del woff2 de Excalidraw con `wawoff2`). El texto es nítido y seleccionable.
 2. **PNG (respaldo)**: `exportToBlob` del frame a escala 3 (288 ppp) insertado a 210 × 297 mm. Se usa en una página cuando contiene algo que el modo vectorial no reproduce fielmente (imágenes recortadas, texto en otras fuentes o con caracteres que Liberation Sans no cubre, como emojis o CJK), o para todo el documento si el modo vectorial falla.
+
+De noche, en el PDF vectorial los colores del SVG pasan por la misma fórmula que el filtro de pantalla (las imágenes conservan sus colores), y en el PNG se usa el modo oscuro de Excalidraw con un ajuste lineal de tonos para llegar a los mismos `#1f1f1f` / `#cccccc`.
 
 Antes de pasar el SVG a svg2pdf, cada imagen (`<use>` → `<symbol>`) se sustituye por un `<image>` directo, porque si no svg2pdf la deforma.
 
