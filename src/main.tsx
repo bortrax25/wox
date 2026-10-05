@@ -1,8 +1,14 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "@excalidraw/excalidraw/index.css";
+import "@fontsource/ibm-plex-mono/400.css";
+import "@fontsource/ibm-plex-mono/500.css";
 import "./index.css";
 import App from "./App.tsx";
+import { loadTheme } from "./theme";
+
+// Aplicar el tema antes del primer pintado para evitar un parpadeo.
+document.documentElement.dataset.theme = loadTheme();
 
 // Las fuentes de Excalidraw se sirven desde public/excalidraw-assets
 // (copiadas por scripts/copy-excalidraw-fonts.mjs). URL absoluta: Excalidraw

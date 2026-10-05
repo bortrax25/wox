@@ -22,9 +22,6 @@ export const PAGE_GAP = 40;
 /** 16 px a 96 ppp = 12 pt. */
 export const DEFAULT_FONT_SIZE = 16;
 
-/** Color del lienzo alrededor de la hoja. */
-export const CANVAS_BACKGROUND = "#e9ecef";
-
 type A4Role = "page-frame" | "page-background";
 
 const roleOf = (el: ExcalidrawElement): A4Role | undefined =>

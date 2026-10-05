@@ -9,7 +9,6 @@ import type {
   UIOptions,
 } from "@excalidraw/excalidraw/types";
 import {
-  CANVAS_BACKGROUND,
   DEFAULT_FONT_SIZE,
   addPage,
   createPage,
@@ -19,6 +18,7 @@ import {
 } from "./a4";
 import { exportPagesToPdf, type PdfMode } from "./pdf";
 import { createAutosave, loadScene } from "./storage";
+import { loadTheme, saveTheme, type Theme } from "./theme";
 
 const UI_OPTIONS: UIOptions = {
   canvasActions: {
@@ -54,7 +54,9 @@ export default function App() {
       elements,
       files: saved?.files,
       appState: {
-        viewBackgroundColor: CANVAS_BACKGROUND,
+        // Lienzo transparente: el color alrededor de la hoja lo pone el CSS
+        // de cada tema (index.css), sin pasar por el filtro del modo oscuro.
+        viewBackgroundColor: "transparent",
         // Estilo limpio, no "dibujado a mano".
         currentItemRoughness: 0,
         currentItemStrokeColor: "#000000",
@@ -146,9 +148,34 @@ export default function App() {
     }
   }, [exporting]);
 
+  const [theme, setTheme] = useState<Theme>(loadTheme);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    saveTheme(theme);
+  }, [theme]);
+
+  const toggleTheme = useCallback(
+    () => setTheme((current) => (current === "dark" ? "light" : "dark")),
+    [],
+  );
+
   const renderTopRightUI = useCallback(
     () => (
       <div className="a4-actions">
+        <button
+          type="button"
+          className="a4-button a4-button--icon"
+          onClick={toggleTheme}
+          title={
+            theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"
+          }
+          aria-label={
+            theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"
+          }
+        >
+          {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+        </button>
         <button
           type="button"
           className="a4-button"
@@ -168,7 +195,7 @@ export default function App() {
         </button>
       </div>
     ),
-    [exporting, handleExportPdf],
+    [exporting, handleExportPdf, theme, toggleTheme],
   );
 
   const onChange = useCallback(
@@ -197,7 +224,37 @@ export default function App() {
         UIOptions={UI_OPTIONS}
         renderTopRightUI={renderTopRightUI}
         langCode="es-ES"
+        theme={theme}
       />
     </div>
+  );
+}
+
+const iconProps = {
+  width: 18,
+  height: 18,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.75,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  "aria-hidden": true,
+} as const;
+
+function MoonIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />
+    </svg>
+  );
+}
+
+function SunIcon() {
+  return (
+    <svg {...iconProps}>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+    </svg>
   );
 }

@@ -1,3 +1,44 @@
+/* ------------------------------------------------------------------ */
+/* Temas                                                               */
+/* Oscuro: colores medidos de una captura del editor Zed.              */
+/* ------------------------------------------------------------------ */
+
+:root {
+  --surround: #e9ecef; /* alrededor de la hoja */
+  --btn-bg: #ffffff;
+  --btn-bg-hover: #f1f3f5;
+  --btn-fg: #212529;
+  --btn-border: #ced4da;
+  --btn-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --primary-bg: #1971c2;
+  --primary-bg-hover: #1864ab;
+  --primary-fg: #ffffff;
+  --btn-font:
+    600 14px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "IBM Plex Mono", "Zed Plex Mono", Menlo, "SF Mono", monospace;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --surround: #181818;
+  --zed-bg: #1f1f1f; /* fondo del editor */
+  --zed-line: #282828; /* línea resaltada */
+  --zed-hover: #2b2b2b;
+  --zed-border: #454545;
+  --zed-fg: #cccccc; /* texto */
+  --zed-muted: #8e8e8e;
+  --btn-bg: var(--zed-bg);
+  --btn-bg-hover: var(--zed-line);
+  --btn-fg: var(--zed-fg);
+  --btn-border: var(--zed-border);
+  --btn-shadow: none;
+  --primary-bg: var(--zed-line);
+  --primary-bg-hover: var(--zed-hover);
+  --primary-fg: #ffffff;
+  --btn-font: 500 13px/1 var(--mono);
+  color-scheme: dark;
+}
+
 html,
 body,
 #root {
@@ -10,6 +51,80 @@ body,
 .app {
   position: fixed;
   inset: 0;
+  background: var(--surround);
+}
+
+/* El lienzo es transparente: el fondo lo pone .app. */
+.excalidraw,
+.excalidraw.theme--dark {
+  background: transparent;
+}
+
+/*
+ * Modo oscuro de la hoja. Excalidraw oscurece el lienzo con un filtro CSS;
+ * este lleva el blanco de la hoja a #1f1f1f y el negro del texto a #cccccc:
+ * invert + hue-rotate (mantiene los tonos), luego contrast(c) y
+ * brightness(k) con k·(0.5 − c/2) = 0x1f/255 y k·(0.5 + c/2) = 0xcc/255.
+ * El PDF no usa este filtro: siempre sale en blanco.
+ */
+.excalidraw.theme--dark canvas {
+  filter: invert(1) hue-rotate(180deg) contrast(0.7361) brightness(0.9216);
+}
+
+/* Interfaz de Excalidraw en modo oscuro, con el aspecto de Zed. */
+.excalidraw.theme--dark {
+  --ui-font: var(--mono);
+  --island-bg-color: var(--zed-bg);
+  --default-bg-color: var(--zed-bg);
+  --input-bg-color: var(--zed-bg);
+  --input-border-color: var(--zed-border);
+  --input-hover-bg-color: var(--zed-line);
+  --popup-bg-color: var(--zed-bg);
+  --popup-secondary-bg-color: var(--zed-line);
+  --popup-text-color: var(--zed-fg);
+  --text-primary-color: var(--zed-fg);
+  --icon-fill-color: var(--zed-fg);
+  --keybinding-color: var(--zed-muted);
+  --button-gray-1: var(--zed-hover);
+  --button-gray-2: var(--zed-line);
+  --button-gray-3: var(--zed-bg);
+  --button-bg: var(--zed-bg);
+  --button-hover-bg: var(--zed-line);
+  --color-surface-low: var(--zed-bg);
+  --color-surface-mid: var(--zed-line);
+  --color-surface-high: var(--zed-hover);
+  --color-surface-lowest: var(--zed-bg);
+  --color-on-surface: var(--zed-fg);
+  --color-gray-100: var(--zed-fg);
+  --color-primary: var(--zed-fg);
+  --color-primary-light: var(--zed-line);
+  --color-primary-light-darker: var(--zed-hover);
+  --color-primary-darker: #ffffff;
+  --color-primary-darkest: #ffffff;
+  --color-primary-hover: #ffffff;
+  --color-surface-primary-container: var(--zed-border);
+  --color-on-primary-container: #ffffff;
+  --color-brand-hover: #ffffff;
+  --color-brand-active: #ffffff;
+  --color-border-outline: var(--zed-muted);
+  --color-border-outline-variant: var(--zed-border);
+  --default-border-color: var(--zed-border);
+  --shadow-island: none;
+  --scrollbar-thumb: var(--zed-border);
+}
+
+.excalidraw.theme--dark .Island {
+  border: 1px solid var(--zed-border);
+  box-shadow: none;
+}
+
+.excalidraw.theme--dark,
+.excalidraw.theme--dark .App-menu,
+.excalidraw.theme--dark .Island,
+.excalidraw.theme--dark legend,
+.excalidraw.theme--dark .ToolIcon__keybinding,
+.excalidraw.theme--dark .Toast {
+  font-family: var(--mono);
 }
 
 /* ------------------------------------------------------------------ */
@@ -64,27 +179,43 @@ body,
 .a4-button {
   height: 36px;
   padding: 0 16px;
-  border: 1px solid #ced4da;
+  border: 1px solid var(--btn-border);
   border-radius: 8px;
-  background: #ffffff;
-  color: #212529;
-  font: 600 14px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font: var(--btn-font);
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--btn-shadow);
 }
 
 .a4-button:hover:not(:disabled) {
-  background: #f1f3f5;
+  background: var(--btn-bg-hover);
+}
+
+.a4-button:focus-visible {
+  outline: 2px solid var(--primary-bg);
+  outline-offset: 2px;
+}
+
+.a4-button--icon {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  padding: 0;
 }
 
 .a4-button--primary {
-  border-color: #1971c2;
-  background: #1971c2;
-  color: #ffffff;
+  border-color: var(--primary-bg);
+  background: var(--primary-bg);
+  color: var(--primary-fg);
+}
+
+:root[data-theme="dark"] .a4-button--primary {
+  border-color: var(--zed-border);
 }
 
 .a4-button--primary:hover:not(:disabled) {
-  background: #1864ab;
+  background: var(--primary-bg-hover);
 }
 
 .a4-button:disabled {
