@@ -11,3 +11,43 @@ body,
   position: fixed;
   inset: 0;
 }
+
+/* ------------------------------------------------------------------ */
+/* Interfaz mínima de Excalidraw                                       */
+/* ------------------------------------------------------------------ */
+
+/* Menú principal, librería, ayuda y textos de ayuda. */
+.excalidraw .main-menu-trigger,
+.excalidraw .default-sidebar-trigger,
+.excalidraw .sidebar-trigger,
+.excalidraw .help-icon,
+.excalidraw .HintViewer {
+  display: none !important;
+}
+
+/* Barra de herramientas: solo mano, seleccionar, texto e imagen. */
+.excalidraw
+  .shapes-section
+  .ToolIcon:not(
+    :has(
+      [data-testid="toolbar-hand"],
+      [data-testid="toolbar-selection"],
+      [data-testid="toolbar-text"],
+      [data-testid="toolbar-image"]
+    )
+  ),
+.excalidraw .App-toolbar__extra-tools-trigger,
+.excalidraw .App-toolbar__divider {
+  display: none !important;
+}
+
+/* Panel de propiedades: solo tamaño de texto y alineación. */
+.excalidraw
+  .App-menu__left
+  .panelColumn
+  > :not(:has([data-testid^="fontSize-"], [data-testid^="align-"])) {
+  display: none !important;
+}
+.excalidraw .App-menu__left:not(:has([data-testid^="fontSize-"])) {
+  display: none !important;
+}
