@@ -4,6 +4,10 @@
 //
 // Además genera un TTF de Liberation Sans a partir del woff2: jsPDF solo
 // acepta TTF y lo necesita para el PDF vectorial (texto seleccionable).
+//
+// Modo 2 (estilo Zed): Excalidraw no permite registrar fuentes propias, así
+// que su fuente "Cascadia" (oculta en la interfaz) se sirve con el archivo
+// de IBM Plex Mono, la base de la letra del editor Zed. También su TTF.
 import {
   cpSync,
   existsSync,
@@ -29,5 +33,14 @@ cpSync(src, dest, {
 const woff2 = `${dest}/Liberation/LiberationSans-Regular.woff2`;
 const ttf = await wawoff2.decompress(readFileSync(woff2));
 writeFileSync(`${dest}/Liberation/LiberationSans-Regular.ttf`, ttf);
+
+const plexWoff2 = readFileSync(
+  "node_modules/@ibm/plex-mono/fonts/complete/woff2/IBMPlexMono-Regular.woff2",
+);
+writeFileSync(`${dest}/Cascadia/CascadiaCode-Regular.woff2`, plexWoff2);
+writeFileSync(
+  `${dest}/Cascadia/IBMPlexMono-Regular.ttf`,
+  await wawoff2.decompress(plexWoff2),
+);
 
 console.log(`Fuentes de Excalidraw copiadas a ${dest}`);

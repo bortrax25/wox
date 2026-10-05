@@ -1,4 +1,4 @@
-import { exportToBlob, exportToSvg } from "@excalidraw/excalidraw";
+import { FONT_FAMILY, exportToBlob, exportToSvg } from "@excalidraw/excalidraw";
 import type { ExcalidrawFrameElement } from "@excalidraw/excalidraw/element/types";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import { jsPDF } from "jspdf";
@@ -8,8 +8,33 @@ import { getPageFrames } from "./a4";
 /** Resolución del PNG respecto a 96 ppp (3 → 288 ppp). */
 const EXPORT_SCALE = 3;
 
-const FONT_FILE = "LiberationSans-Regular.ttf";
-const FONT_URL = `${import.meta.env.BASE_URL}excalidraw-assets/fonts/Liberation/${FONT_FILE}`;
+/**
+ * Fuentes que el PDF vectorial sabe embeber, con el nombre de familia que
+ * Excalidraw pone en el SVG y los caracteres que cubre cada TTF.
+ * "Cascadia" es la fuente del Modo 2, servida con IBM Plex Mono (mode.ts);
+ * en el PDF se registra con su nombre real (pdfName).
+ */
+const PDF_FONTS = [
+  {
+    fontFamily: FONT_FAMILY["Liberation Sans"],
+    family: "Liberation Sans",
+    pdfName: "Liberation Sans",
+    file: "Liberation/LiberationSans-Regular.ttf",
+    // Latín, griego, cirílico y signos.
+    covers: /^[\s\u0020-\u052F\u2000-\u206F\u20A0-\u20BF\u2100-\u214F]*$/,
+  },
+  {
+    fontFamily: FONT_FAMILY.Cascadia,
+    family: "Cascadia",
+    pdfName: "IBM Plex Mono",
+    file: "Cascadia/IBMPlexMono-Regular.ttf",
+    // Latín y cirílico.
+    covers: /^[\s\u0020-\u024F\u0400-\u04FF\u2000-\u206F\u20A0-\u20BF]*$/,
+  },
+];
+
+const fontUrl = (file: string) =>
+  `${import.meta.env.BASE_URL}excalidraw-assets/fonts/${file}`;
 
 export type PdfMode = "vector" | "raster";
 
@@ -91,23 +116,21 @@ const inlineImageSymbols = (svg: SVGSVGElement) => {
   }
 };
 
-/** Caracteres cubiertos por Liberation Sans (latín, griego, cirílico, signos). */
-const SUPPORTED_TEXT = /^[\s -\u052F-\u206F\u20A0-\u20BF\u2100-\u214F]*$/;
-
 /**
  * El PDF vectorial solo es fiel si la página usa lo que jsPDF/svg2pdf saben
- * dibujar: texto en Liberation Sans con caracteres que la fuente cubre y sin
- * máscaras (las usan las imágenes recortadas). Si no, esa página va en PNG.
+ * dibujar: texto en una de PDF_FONTS con caracteres que esa fuente cubre y
+ * sin máscaras (las usan las imágenes recortadas). Si no, esa página va en
+ * PNG.
  */
 const canRenderAsVector = (svg: SVGSVGElement) => {
   if (svg.querySelector("mask")) {
     return false;
   }
-  return Array.from(svg.querySelectorAll("text")).every(
-    (text) =>
-      (text.getAttribute("font-family") ?? "").startsWith("Liberation Sans") &&
-      SUPPORTED_TEXT.test(text.textContent ?? ""),
-  );
+  return Array.from(svg.querySelectorAll("text")).every((text) => {
+    const family = text.getAttribute("font-family") ?? "";
+    const font = PDF_FONTS.find((f) => family.startsWith(f.family));
+    return font?.covers.test(text.textContent ?? "") ?? false;
+  });
 };
 
 /** Fase 2: SVG → PDF vectorial; el texto queda seleccionable y nítido. */
@@ -124,6 +147,13 @@ const renderVectorPage: PageRenderer = async (pdf, api, frame) => {
     return renderRasterPage(pdf, api, frame);
   }
   inlineImageSymbols(svg);
+  svg.querySelectorAll("text").forEach((text: SVGTextElement) => {
+    const family = text.getAttribute("font-family") ?? "";
+    const font = PDF_FONTS.find((f) => family.startsWith(f.family));
+    if (font) {
+      text.setAttribute("font-family", font.pdfName);
+    }
+  });
   // svg2pdf necesita estilos calculados: el SVG debe estar en el documento.
   const host = document.createElement("div");
   host.style.cssText = "position:fixed;left:-10000px;top:0;visibility:hidden";
@@ -142,23 +172,29 @@ const renderVectorPage: PageRenderer = async (pdf, api, frame) => {
   }
 };
 
-let fontBase64: Promise<string> | null = null;
+const fontCache = new Map<string, Promise<string>>();
 
-const loadFontBase64 = () => {
-  fontBase64 ??= fetch(FONT_URL)
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error(`No se pudo cargar ${FONT_URL} (${res.status})`);
-      }
-      return res.blob();
-    })
-    .then(blobToDataURL)
-    .then((dataUrl) => dataUrl.slice(dataUrl.indexOf(",") + 1))
-    .catch((error) => {
-      fontBase64 = null;
-      throw error;
-    });
-  return fontBase64;
+/** TTF en base64, como lo pide jsPDF. Se descarga una vez por sesión. */
+const loadFontBase64 = (file: string) => {
+  let font = fontCache.get(file);
+  if (!font) {
+    const url = fontUrl(file);
+    font = fetch(url)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`No se pudo cargar ${url} (${res.status})`);
+        }
+        return res.blob();
+      })
+      .then(blobToDataURL)
+      .then((dataUrl) => dataUrl.slice(dataUrl.indexOf(",") + 1))
+      .catch((error) => {
+        fontCache.delete(file);
+        throw error;
+      });
+    fontCache.set(file, font);
+  }
+  return font;
 };
 
 async function buildPdf(api: ExcalidrawImperativeAPI, mode: PdfMode) {
@@ -169,9 +205,20 @@ async function buildPdf(api: ExcalidrawImperativeAPI, mode: PdfMode) {
 
   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   if (mode === "vector") {
-    // Mismo nombre de familia que usa Excalidraw en el SVG.
-    pdf.addFileToVFS(FONT_FILE, await loadFontBase64());
-    pdf.addFont(FONT_FILE, "Liberation Sans", "normal");
+    // Solo las fuentes que usa el documento (cada una se embebe entera).
+    const used = new Set(
+      api
+        .getSceneElements()
+        .flatMap((el) => (el.type === "text" ? [el.fontFamily] : [])),
+    );
+    for (const { fontFamily, pdfName, file } of PDF_FONTS) {
+      if (!used.has(fontFamily)) {
+        continue;
+      }
+      const name = file.split("/").pop()!;
+      pdf.addFileToVFS(name, await loadFontBase64(file));
+      pdf.addFont(name, pdfName, "normal");
+    }
   }
   const renderPage = mode === "vector" ? renderVectorPage : renderRasterPage;
 

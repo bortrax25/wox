@@ -124,12 +124,27 @@ body,
   box-shadow: none;
 }
 
+/* Letra de Zed en la interfaz: en noche y en el Modo 2. */
+:root[data-mode="2"] {
+  --btn-font: 500 13px/1 var(--mono);
+}
+
+:root[data-mode="2"] .excalidraw {
+  --ui-font: var(--mono);
+}
+
 .excalidraw.theme--dark,
 .excalidraw.theme--dark .App-menu,
 .excalidraw.theme--dark .Island,
 .excalidraw.theme--dark legend,
 .excalidraw.theme--dark .ToolIcon__keybinding,
-.excalidraw.theme--dark .Toast {
+.excalidraw.theme--dark .Toast,
+:root[data-mode="2"] .excalidraw,
+:root[data-mode="2"] .excalidraw .App-menu,
+:root[data-mode="2"] .excalidraw .Island,
+:root[data-mode="2"] .excalidraw legend,
+:root[data-mode="2"] .excalidraw .ToolIcon__keybinding,
+:root[data-mode="2"] .excalidraw .Toast {
   font-family: var(--mono);
 }
 
@@ -209,6 +224,13 @@ body,
 }
 
 /* Selector Modo 1 / Modo 2: dos opciones unidas, la activa resaltada. */
+.a4-button--icon {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  padding: 0;
+}
+
 .a4-modes {
   display: inline-flex;
   height: 36px;

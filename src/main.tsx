@@ -5,10 +5,12 @@ import "@fontsource/ibm-plex-mono/400.css";
 import "@fontsource/ibm-plex-mono/500.css";
 import "./index.css";
 import App from "./App.tsx";
+import { loadMode } from "./mode";
 import { loadTheme } from "./theme";
 
 // Aplicar el tema antes del primer pintado para evitar un parpadeo.
 document.documentElement.dataset.theme = loadTheme();
+document.documentElement.dataset.mode = String(loadMode());
 
 // Las fuentes de Excalidraw se sirven desde public/excalidraw-assets
 // (copiadas por scripts/copy-excalidraw-fonts.mjs). URL absoluta: Excalidraw

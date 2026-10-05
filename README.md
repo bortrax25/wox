@@ -18,7 +18,8 @@ npm run lint
 - **Texto**: herramienta `T` (o doble clic en la hoja). Para que un párrafo largo haga salto de línea automático, arrastra el borde lateral de la caja de texto: queda con ancho fijo.
 - **Imágenes**: herramienta de imagen, pegar (`Ctrl+V`) o arrastrar desde el escritorio. Se mueven y redimensionan libremente.
 - **+ Hoja**: agrega otra hoja A4 debajo de la última (`Ctrl+Z` la quita).
-- **Modo 1 / Modo 2**: selector junto al botón PDF; se recuerda. Modo 1 es el claro. Modo 2 es oscuro e imita el editor Zed (fondo `#1f1f1f`, texto `#cccccc`, interfaz en IBM Plex Mono). Solo afecta a la pantalla: el PDF sale siempre en blanco con texto negro.
+- **Modo 1 / Modo 2** (junto al botón PDF): estilo del documento. Modo 1: texto en Liberation Sans (Arial). Modo 2: estilo del editor Zed, con texto e interfaz en IBM Plex Mono e interlineado 1,618. Al cambiar, todos los textos se recalculan para no descuadrarse.
+- **Día / noche** (botón sol/luna): independiente del modo. De noche la hoja se ve como Zed (fondo `#1f1f1f`, texto `#cccccc`). Solo afecta a la pantalla: el PDF sale siempre en blanco con texto negro.
 - **PDF**: descarga `documento.pdf` con una página por hoja; solo se incluye lo que está dentro de cada hoja.
 - Todo se guarda solo en `localStorage` y se restaura al recargar.
 
@@ -30,7 +31,8 @@ npm run lint
 | `src/a4.ts` | Hoja A4: frame de 794 × 1123 px (A4 a 96 ppp) + rectángulo blanco de fondo, ambos `locked`. |
 | `src/pdf.ts` | Exportación a PDF (vectorial con respaldo en PNG). |
 | `src/storage.ts` | Autoguardado en `localStorage` con debounce. |
-| `src/theme.ts` | Tema claro/oscuro guardado en `localStorage`. |
+| `src/mode.ts` | Modo 1 / Modo 2: fuente e interlineado de los textos. |
+| `src/theme.ts` | Día / noche, guardado en `localStorage`. |
 | `src/index.css` | Pantalla completa, interfaz mínima (oculta herramientas y paneles con `:has()`) y estilos de ambos temas. |
 
 Versión verificada: `@excalidraw/excalidraw` **0.18.1**.
@@ -40,6 +42,7 @@ Versión verificada: `@excalidraw/excalidraw` **0.18.1**.
 - Excalidraw 0.18.1 **no tiene API pública para registrar una fuente propia** (como Arimo): el registro (`Fonts.register`) es interno y solo acepta las familias de `FONT_FAMILY`.
 - Sí incluye **Liberation Sans** (`FONT_FAMILY["Liberation Sans"]`), que tiene las mismas métricas que Arial (igual que Arimo). Es la fuente por defecto, a 16 px (12 pt).
 - El texto escrito con otras fuentes (p. ej. de una sesión anterior) se conserva tal cual.
+- **Modo 2 (IBM Plex Mono)**: como no hay API para fuentes propias, se usa la familia `FONT_FAMILY.Cascadia` (oculta en la interfaz) y `scripts/copy-excalidraw-fonts.mjs` sirve en su lugar el archivo de IBM Plex Mono (paquete `@ibm/plex-mono`), además de su TTF para el PDF. En el PDF la fuente aparece con su nombre real.
 
 ### PDF
 
