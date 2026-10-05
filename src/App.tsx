@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Excalidraw, FONT_FAMILY } from "@excalidraw/excalidraw";
 import type {
   AppState,
@@ -12,6 +12,7 @@ import {
   createPage,
   getPageFrames,
 } from "./a4";
+import { exportPagesToPdf } from "./pdf";
 
 const UI_OPTIONS: UIOptions = {
   canvasActions: {
@@ -72,6 +73,41 @@ export default function App() {
     });
   }, []);
 
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportPdf = useCallback(async () => {
+    const api = apiRef.current;
+    if (!api || exporting) {
+      return;
+    }
+    setExporting(true);
+    try {
+      await exportPagesToPdf(api);
+    } catch (error) {
+      console.error(error);
+      api.setToast({ message: "No se pudo generar el PDF.", closable: true });
+    } finally {
+      setExporting(false);
+    }
+  }, [exporting]);
+
+  const renderTopRightUI = useCallback(
+    () => (
+      <div className="a4-actions">
+        <button
+          type="button"
+          className="a4-button a4-button--primary"
+          onClick={handleExportPdf}
+          disabled={exporting}
+          title="Descargar la hoja como PDF"
+        >
+          {exporting ? "Generando…" : "PDF"}
+        </button>
+      </div>
+    ),
+    [exporting, handleExportPdf],
+  );
+
   const onChange = useCallback(
     (_elements: unknown, appState: AppState) => {
       if (!ALLOWED_TOOLS.has(appState.activeTool.type)) {
@@ -88,6 +124,7 @@ export default function App() {
         excalidrawAPI={onApi}
         onChange={onChange}
         UIOptions={UI_OPTIONS}
+        renderTopRightUI={renderTopRightUI}
         langCode="es-ES"
       />
     </div>
