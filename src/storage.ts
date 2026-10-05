@@ -52,7 +52,9 @@ export function loadScene(): SavedScene | null {
  * (imágenes en dataURL) solo se reescriben cuando cambia el conjunto de
  * imágenes usadas, porque son lo más pesado.
  */
-export function createAutosave(onError: (error: unknown) => void) {
+export function createAutosave() {
+  let onError: (error: unknown) => void = (error) =>
+    console.error("No se pudo guardar en localStorage", error);
   let timer: ReturnType<typeof setTimeout> | null = null;
   let pending: (() => void) | null = null;
   let lastFilesKey = "";
@@ -120,5 +122,9 @@ export function createAutosave(onError: (error: unknown) => void) {
     lastFilesKey = Object.keys(files).sort().join(",");
   };
 
-  return { save, flush, markFilesSaved };
+  const setErrorHandler = (handler: (error: unknown) => void) => {
+    onError = handler;
+  };
+
+  return { save, flush, markFilesSaved, setErrorHandler };
 }

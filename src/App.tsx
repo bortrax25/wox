@@ -16,7 +16,7 @@ import {
   getPageFrames,
   scrollToPage,
 } from "./a4";
-import { exportPagesToPdf } from "./pdf";
+import { exportPagesToPdf, type PdfMode } from "./pdf";
 import { createAutosave, loadScene } from "./storage";
 
 const UI_OPTIONS: UIOptions = {
@@ -37,22 +37,7 @@ const ALLOWED_TOOLS = new Set<string>(["selection", "hand", "text", "image"]);
 
 export default function App() {
   const apiRef = useRef<ExcalidrawImperativeAPI | null>(null);
-  const storageErrorShown = useRef(false);
-
-  const [autosave] = useState(() =>
-    createAutosave((error) => {
-      console.error("No se pudo guardar en localStorage", error);
-      if (!storageErrorShown.current) {
-        storageErrorShown.current = true;
-        apiRef.current?.setToast({
-          message:
-            "No se pudo guardar automáticamente (¿imágenes demasiado grandes?).",
-          closable: true,
-          duration: 8000,
-        });
-      }
-    }),
-  );
+  const [autosave] = useState(createAutosave);
 
   const initialData = useMemo<ExcalidrawInitialDataState>(() => {
     const saved = loadScene();
@@ -78,7 +63,12 @@ export default function App() {
         currentItemFontSize: DEFAULT_FONT_SIZE,
         currentItemTextAlign: "left",
         currentItemRoundness: "sharp",
-        frameRendering: { enabled: true, clip: true, name: false, outline: false },
+        frameRendering: {
+          enabled: true,
+          clip: true,
+          name: false,
+          outline: false,
+        },
         ...saved?.appState,
       },
       scrollToContent: false,
@@ -102,20 +92,40 @@ export default function App() {
     };
   }, [autosave]);
 
-  const onApi = useCallback((api: ExcalidrawImperativeAPI) => {
-    apiRef.current = api;
-    if (import.meta.env.DEV) {
-      // Facilita la depuración desde la consola del navegador.
-      (window as unknown as { excalidrawAPI: unknown }).excalidrawAPI = api;
-    }
-    // Esperar a que la escena inicial esté montada antes de centrar la hoja.
-    requestAnimationFrame(() => {
-      const [firstPage] = getPageFrames(api.getSceneElements());
-      if (firstPage) {
-        scrollToPage(api, firstPage);
+  const onApi = useCallback(
+    (api: ExcalidrawImperativeAPI) => {
+      apiRef.current = api;
+      let storageErrorShown = false;
+      autosave.setErrorHandler((error) => {
+        console.error("No se pudo guardar en localStorage", error);
+        if (!storageErrorShown) {
+          storageErrorShown = true;
+          api.setToast({
+            message:
+              "No se pudo guardar automáticamente (¿imágenes demasiado grandes?).",
+            closable: true,
+            duration: 8000,
+          });
+        }
+      });
+      if (import.meta.env.DEV) {
+        // Facilita la depuración desde la consola del navegador.
+        Object.assign(window, {
+          excalidrawAPI: api,
+          exportPdf: (mode: PdfMode) =>
+            exportPagesToPdf(api, "documento.pdf", mode),
+        });
       }
-    });
-  }, []);
+      // Esperar a que la escena inicial esté montada antes de centrar la hoja.
+      requestAnimationFrame(() => {
+        const [firstPage] = getPageFrames(api.getSceneElements());
+        if (firstPage) {
+          scrollToPage(api, firstPage);
+        }
+      });
+    },
+    [autosave],
+  );
 
   const [exporting, setExporting] = useState(false);
 
