@@ -11,8 +11,10 @@ import type {
 import {
   CANVAS_BACKGROUND,
   DEFAULT_FONT_SIZE,
+  addPage,
   createPage,
   getPageFrames,
+  scrollToPage,
 } from "./a4";
 import { exportPagesToPdf } from "./pdf";
 import { createAutosave, loadScene } from "./storage";
@@ -110,12 +112,7 @@ export default function App() {
     requestAnimationFrame(() => {
       const [firstPage] = getPageFrames(api.getSceneElements());
       if (firstPage) {
-        api.scrollToContent(firstPage, {
-          fitToViewport: true,
-          viewportZoomFactor: 0.95,
-          // Dejar libre el espacio de la barra superior y del pie.
-          canvasOffsets: { top: 72, bottom: 64, left: 16, right: 16 },
-        });
+        scrollToPage(api, firstPage);
       }
     });
   }, []);
@@ -141,6 +138,14 @@ export default function App() {
   const renderTopRightUI = useCallback(
     () => (
       <div className="a4-actions">
+        <button
+          type="button"
+          className="a4-button"
+          onClick={() => apiRef.current && addPage(apiRef.current)}
+          title="Agregar una hoja A4 debajo de la última"
+        >
+          + Hoja
+        </button>
         <button
           type="button"
           className="a4-button a4-button--primary"

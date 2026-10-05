@@ -1,4 +1,8 @@
-import { convertToExcalidrawElements } from "@excalidraw/excalidraw";
+import {
+  CaptureUpdateAction,
+  convertToExcalidrawElements,
+} from "@excalidraw/excalidraw";
+import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import type {
   ExcalidrawElement,
   ExcalidrawFrameElement,
@@ -91,4 +95,37 @@ export const createPage = (y = 0, x = 0) => {
       ? { ...el, x, y, width: A4_WIDTH, height: A4_HEIGHT }
       : el,
   );
+};
+
+/** Encuadra una hoja dejando libre el espacio de la barra superior y del pie. */
+export const scrollToPage = (
+  api: ExcalidrawImperativeAPI,
+  page: ExcalidrawFrameElement,
+  animate = false,
+) => {
+  api.scrollToContent(page, {
+    fitToViewport: true,
+    viewportZoomFactor: 0.95,
+    canvasOffsets: { top: 72, bottom: 64, left: 16, right: 16 },
+    animate,
+  });
+};
+
+/** Agrega una hoja nueva debajo de la última y la muestra. Se puede deshacer. */
+export const addPage = (api: ExcalidrawImperativeAPI) => {
+  const pages = getPageFrames(api.getSceneElements());
+  const last = pages[pages.length - 1];
+  const newPage = last
+    ? createPage(last.y + A4_HEIGHT + PAGE_GAP, last.x)
+    : createPage();
+
+  api.updateScene({
+    elements: [...api.getSceneElementsIncludingDeleted(), ...newPage],
+    captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+  });
+
+  const [frame] = getPageFrames(newPage);
+  if (frame) {
+    scrollToPage(api, frame, true);
+  }
 };
