@@ -71,7 +71,8 @@ export default function App() {
         currentItemRoughness: 0,
         currentItemStrokeColor: "#000000",
         currentItemBackgroundColor: "transparent",
-        currentItemFontFamily: FONT_FAMILY.Nunito,
+        // Liberation Sans: incluida en Excalidraw, mismas métricas que Arial.
+        currentItemFontFamily: FONT_FAMILY["Liberation Sans"],
         currentItemFontSize: DEFAULT_FONT_SIZE,
         currentItemTextAlign: "left",
         currentItemRoundness: "sharp",
